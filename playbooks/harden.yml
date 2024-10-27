@@ -1,0 +1,7 @@
+---
+- name: Harden Systems
+  hosts: all
+  become: true
+  roles:
+    - roles/ansible-lockdown
+    - roles/fapolicyd

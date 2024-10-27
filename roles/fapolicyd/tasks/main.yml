@@ -1,0 +1,13 @@
+---
+- name: Set fapolicyd to permissive
+  ansible.builtin.lineinfile:
+    path: /etc/fapolicyd/fapolicyd.conf
+    regexp: '^permissive'
+    line: 'permissive = 1'
+
+- name: Restart fapolicyd
+  ansible.builtin.service:
+    name: fapolicyd
+    state: restarted
+
+

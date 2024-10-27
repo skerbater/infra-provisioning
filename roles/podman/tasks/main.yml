@@ -1,0 +1,12 @@
+---
+# tasks file for podman
+- name: Install the latest version of podman
+  ansible.builtin.dnf:
+    name: podman
+    state: latest
+
+- name: Podman start and enable
+  ansible.builtin.systemd:
+    name: podman
+    state: started
+    enabled: true

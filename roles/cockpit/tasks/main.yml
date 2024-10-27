@@ -1,0 +1,14 @@
+---
+# tasks file for cockpit
+- name: Cockpit package installation
+  ansible.builtin.dnf:
+    name: cockpit
+    state: present
+
+- name: Cockpit start and enable
+  ansible.builtin.systemd:
+    name: cockpit.socket
+    state: started
+    enabled: true
+
+

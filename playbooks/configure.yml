@@ -1,0 +1,62 @@
+---
+- name: Configure SSH Keys
+  hosts: localhost
+  connection: local
+  roles:
+    - roles/ssh-authentication
+    
+- name: Install and configure common packages
+  hosts: all
+  become: true
+  roles:
+    - roles/security-prep
+    - roles/aide
+    - roles/anti-virus
+    - roles/ipa-client
+
+- name: Install and configure rsyslog server
+  hosts: analytics
+  become: true
+  roles:
+    - roles/syslog
+
+- name: Install and configure management server packages
+  hosts: mgs
+  become: true
+  roles:
+    - roles/cockpit
+    - roles/podman
+    - roles/dbeaver
+
+- name: Install and configure RKE2 common components
+  hosts: k8s
+  become: true
+  roles:
+    - roles/rke2
+
+- name: Install and configure RKE2 server
+  hosts: rkeservers
+  become: true
+  roles:
+    - roles/rke2-server
+
+- name: Install and configure RKE2 agents
+  hosts: rkeagents
+  become: true
+  roles:
+    - roles/rke2-agent
+
+- name: Install and configure Kafka Messenger
+  hosts: queue
+  become: true
+  roles:
+    - roles/java-jre
+    - roles/kafka
+
+- name: Install and configure Application java Servers
+  hosts: queue
+  become: true
+  roles:
+    - roles/java-jre
+    - roles/tomcat
+    - roles/lucee

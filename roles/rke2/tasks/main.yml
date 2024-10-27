@@ -1,0 +1,26 @@
+---
+# tasks file for rke2
+- name: Add rke2-common repository (1/2)
+  ansible.builtin.yum_repository:
+    name: rancher-rke2-common-latest
+    description: Rancher RKE2 Common Latest
+    file: rancher_rke2
+    baseurl: https://rpm.rancher.io/rke2/latest/common/centos/9/noarch
+    gpgcheck: yes
+    gpgkey: https://rpm.rancher.io/public.key
+    enabled: yes
+
+- name: Add rke2-1.29 repository (2/2)
+  ansible.builtin.yum_repository:
+    name: rancher-rke2-1-29-latest
+    description: Rancher RKE2 1.29 Latest
+    file: rancher_rke2
+    baseurl: https://rpm.rancher.io/rke2/latest/1.30/centos/9/x86_64
+    gpgcheck: yes
+    gpgkey: https://rpm.rancher.io/public.key
+    enabled: yes
+
+- name: Import rke2 key
+  ansible.builtin.rpm_key:
+    state: present
+    key: https://rpm.rancher.io/public.key

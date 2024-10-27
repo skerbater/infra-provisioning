@@ -1,0 +1,11 @@
+---
+# tasks file for ipa-client
+- name: IPA-Client package installation
+  ansible.builtin.dnf:
+    name: ipa-client
+    state: present
+
+- name: SSSD package installation
+  ansible.builtin.dnf:
+    name: sssd
+    state: present

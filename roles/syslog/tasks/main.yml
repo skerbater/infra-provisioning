@@ -1,0 +1,22 @@
+---
+# tasks file for syslog
+- name: Rsyslog-Server package installation
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - rsyslog 
+    - rsyslog-crypto
+    - rsyslog-mysql
+    - rsyslog-pgsql
+    - rsyslog-openssl
+    - rsyslog-logrotate
+    - rsyslog-snmp
+    - rsyslog-mmnormalize
+    - rsyslog-elasticsearch
+
+- name: Rsyslog start and enable
+  ansible.builtin.systemd:
+    name: rsyslog
+    state: started
+    enabled: true

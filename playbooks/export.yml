@@ -1,0 +1,74 @@
+---
+- name: Prep Export
+  hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: Remove VM Directory
+    ansible.builtin.file:
+      path: "/mnt/exports/export-{{ vcstring }}"
+      state: absent
+      mode: '0777'
+    delegate_to: localhost
+
+  - name: Create VM Directory
+    ansible.builtin.file:
+      path: "/mnt/exports/export-{{ vcstring }}"
+      state: directory
+      mode: '0777'
+    delegate_to: localhost
+
+- name: Export VM from template
+  hosts: all
+  gather_facts: no
+  tasks:
+  - name: Power Down the Virtual Machine
+    community.vmware.vmware_guest_powerstate:
+      hostname: "{{ vchostname }}"
+      username: "{{ vcusername }}"
+      password: "{{ vcpassword }}"
+      validate_certs: False
+      name: "{{ vcstring }}-{{ inventory_hostname_short }}"
+      datacenter: "{{ vcdatacenter}}"
+      folder: "/{{ vcdatacenter }}/vm/Infrastructure/{{ vcstring }}"
+      state: shutdown-guest
+      state_change_timeout: 180
+    delegate_to: localhost
+
+  - name: Export the Virtual Machine
+    community.vmware.vmware_export_ovf:
+      hostname: "{{ vchostname }}"
+      username: "{{ vcusername }}"
+      password: "{{ vcpassword }}"
+      validate_certs: False
+      name: "{{ vcstring }}-{{ inventory_hostname_short }}"
+      datacenter: "{{ vcdatacenter}}"
+      folder: "/{{ vcdatacenter }}/vm/Infrastructure/{{ vcstring }}"
+      download_timeout: 1200
+      export_with_images: true
+      export_dir: "/mnt/exports/export-{{ vcstring }}"
+    delegate_to: localhost
+    async: 7200
+    poll: 0
+    register: export_job
+
+  - name: Check on export task
+    async_status:
+      jid: "{{ export_job.ansible_job_id }}"
+    register: export_job_result
+    until: export_job_result.finished
+    retries: 120
+    delay: 60
+    delegate_to: localhost
+
+  - name: Power On the Virtual Machine
+    community.vmware.vmware_guest_powerstate:
+      hostname: "{{ vchostname }}"
+      username: "{{ vcusername }}"
+      password: "{{ vcpassword }}"
+      validate_certs: False
+      name: "{{ vcstring }}-{{ inventory_hostname_short }}"
+      datacenter: "{{ vcdatacenter}}"
+      folder: "/{{ vcdatacenter }}/vm/Infrastructure/{{ vcstring }}"
+      state: powered-on
+      state_change_timeout: 180
+    delegate_to: localhost

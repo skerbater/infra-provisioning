@@ -1,0 +1,70 @@
+---
+# tasks file for kafka
+- name: Download and extract the latest version of kafka
+  ansible.builtin.unarchive:
+    src: https://downloads.apache.org/kafka/3.7.0/kafka_2.13-3.7.0.tgz
+    dest: /opt
+    remote_src: yes
+
+- name: Ensure group "kafka" exists
+  ansible.builtin.group:
+    name: kafka
+    state: present
+    system: yes
+
+- name: Add the system user 'kafka' with a primary group of 'kafka'
+  ansible.builtin.user:
+    name: kafka
+    comment: Kafka system account
+    group: kafka
+    shell: /sbin/nologin
+    create_home: false
+    append: true
+    state: present
+    system: yes
+
+- name: Create a symbolic link to /opt/kafka
+  ansible.builtin.file:
+    src: /opt/kafka_2.13-3.7.0
+    dest: /opt/kafka
+    owner: kafka
+    group: kafka
+    state: link
+
+- name: Change file ownership, group and permissions of /opt/kafka
+  ansible.builtin.file:
+    path: /opt/kafka
+    owner: kafka
+    group: kafka
+
+- name: Template the kafka-zookeeper systemd files
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+  with_items:
+    - zookeeper.service
+    - kafka.service
+
+- name: Enable kafka-zooker services and start
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+  with_items:
+    - zookeeper.service
+    - kafka.service
+
+- name: Template the kafka-zookeeper firewalld files
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/firewalld/services/{{ item }}"
+  with_items:
+    - kafka-firewalld.xml
+    - zookeeper-firewalld.xml
+
+- name: Restart firewalld
+  ansible.builtin.systemd:
+    name: firewalld.service
+    state: restarted
+

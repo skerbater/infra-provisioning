@@ -1,0 +1,7 @@
+rhel9stig_remotelog_server:
+    server: 10.16.0.80
+    port: 514
+    protocol: '@@'
+rhel9stig_white_list_services:
+- ssh
+- cockpit

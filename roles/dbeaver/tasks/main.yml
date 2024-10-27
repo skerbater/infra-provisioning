@@ -1,0 +1,18 @@
+---
+- name: Pull cloudbeaver image
+  containers.podman.podman_image:
+    name: "docker.io/dbeaver/cloudbeaver"
+    tag: latest
+
+- name: Run cloudbeaver container
+  containers.podman.podman_container:
+    name: beaver
+    image: "docker.io/dbeaver/cloudbeaver:latest"
+    state: started
+    restart_policy: always
+    generate_systemd:
+      restart_policy: always
+    ports:
+        - "8080:8978"
+    volume:
+      - "/opt/cloudbeaver/workspace"

@@ -1,0 +1,9 @@
+---
+# tasks file for security-prep
+- name: Temporarily set crypto-policy to allow SHA1
+  ansible.builtin.shell: 
+    cmd: "update-crypto-policies --set default:SHA1"
+
+- name: Reboot
+  ansible.builtin.reboot:
+

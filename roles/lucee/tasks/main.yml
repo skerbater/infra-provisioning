@@ -1,0 +1,10 @@
+---
+- name: Download lucee war for integration into Tomcat
+  ansible.builtin.get_url:
+    url: https://cdn.lucee.org/lucee-6.0.1.83.war
+    dest: /tmp/lucee-6.0.1.83.war
+
+- name: /tmp/lucee-6.0.1.83.war
+  ansible.builtin.file:
+    state: absent
+    path: /tmp/lucee-6.0.1.83.war

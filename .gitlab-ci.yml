@@ -1,0 +1,96 @@
+# This file is a template, and might need editing before it works on your project.
+# This is a sample GitLab CI/CD configuration file that should run without any modifications.
+# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
+# it uses echo commands to simulate the pipeline execution.
+#
+# A pipeline is composed of independent jobs that run scripts, grouped into stages.
+# Stages run in sequential order, but jobs within stages run in parallel.
+#
+# For more information, see: https://docs.gitlab.com/ee/ci/yaml/index.html#stages
+#
+# You can copy and paste this template into a new `.gitlab-ci.yml` file.
+# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
+#
+# To contribute improvements to CI/CD templates, please follow the Development guide at:
+# https://docs.gitlab.com/ee/development/cicd/templates.html
+# This specific template is located at:
+# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
+image: rockylinux:gitlab
+
+workflow:
+  name: 'Pipeline for branch: $CI_COMMIT_BRANCH'
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  RUN_CREATE:
+    value: "yes"
+    description: "Run the create stage (Default yes)"
+    options:
+      - "yes"
+      - "no"
+  RUN_CONFIGURE:
+    value: "yes"
+    description: "Run the cconfigure stage (Default yes)"
+    options:
+      - "yes"
+      - "no"
+  RUN_HARDEN:
+    value: "yes"
+    description: "Run the harden stage (Default yes)"
+    options:
+      - "yes"
+      - "no"
+  RUN_EXPORT:
+    value: "yes"
+    description: "Run the export stage (Default yes)"
+    options:
+      - "yes"
+      - "no"
+
+cache:
+  paths:
+    - .cache/pip
+    - venv/
+
+before_script:
+  - 'export ANSIBLE_CONFIG=.ansible/ansible.cfg'
+  - 'python3 -m venv venv'
+  - 'source venv/bin/activate'
+  - 'pip install --upgrade pip && pip install wheel'
+  - 'pip install --upgrade -r pip.txt'
+  - 'ansible-galaxy collection install -U -r galaxy.yml'
+  - 'printenv'
+  
+stages:          # List of stages for jobs, and their order of execution
+  - create
+  - configure
+  - harden
+  - export
+
+create-vm:       # This job runs in the create stage.
+  stage: create   # It only starts when the job in the ci-init stage completes successfully.
+  script:
+    - ansible-playbook -i inventory.yml playbooks/create.yml
+  rules:
+    - if: $RUN_CREATE == "yes"
+
+configure-vm:      # This job runs in the configure stage.
+  stage: configure  # It only runs when jobs in the create stage complete successfully.
+  script:
+    - ansible-playbook -i inventory.yml playbooks/configure.yml
+  rules:
+    - if: $RUN_CONFIGURE == "yes"
+
+harden-vm:      # This job runs in the harden stage.
+  stage: harden  # It only runs when jobs in the configure stage complete successfully.
+  script:
+    - ansible-playbook -i inventory.yml playbooks/harden.yml
+  rules:
+    - if: $RUN_HARDEN == "yes"
+
+export-vm:      # This job runs in the export stage.
+  stage: export  # It only runs when jobs in the harden stage complete successfully.
+  script:
+    - ansible-playbook -i inventory.yml playbooks/export.yml
+  rules:
+    - if: $RUN_EXPORT == "yes"

@@ -1,0 +1,19 @@
+---
+# tasks file for ssh-authentication
+- name: Create SSH Directory
+  ansible.builtin.file:
+    name: "~/.ssh" 
+    state: directory
+    mode: '0700'
+
+- name: Copy SSH ID
+  ansible.builtin.copy:
+    src: id_rsa
+    dest: ~/.ssh/id_rsa
+    mode: '0600'
+
+- name: Copy SSH KEY
+  ansible.builtin.copy:
+    src: id_rsa.pub
+    dest: ~/.ssh/id_rsa.pub
+    mode: '0600'

@@ -1,0 +1,51 @@
+---
+
+- name: Run Cat 2 STIG 21xxxx tasks
+  ansible.builtin.import_tasks:
+    file: RHEL-09-21xxxx.yml
+
+- name: Run Cat 2 STIG 23xxxx tasks
+  ansible.builtin.import_tasks:
+    file: RHEL-09-23xxxx.yml
+
+- name: Run Cat 2 STIG 25xxxx tasks
+  ansible.builtin.import_tasks:
+    file: RHEL-09-25xxxx.yml
+
+- name: Run Cat 2 STIG 27xxxx tasks
+  when:
+    - rhel9stig_gui
+  ansible.builtin.import_tasks:
+    file: RHEL-09-27xxxx.yml
+
+- name: Run Cat 2 STIG 29xxxx tasks
+  ansible.builtin.import_tasks:
+    file: RHEL-09-29xxxx.yml
+
+- name: Run Cat 2 STIG 4xxxxx tasks
+  ansible.builtin.import_tasks:
+    file: RHEL-09-4xxxxx.yml
+
+- name: Run Cat 2 STIG 61xxxx tasks
+  ansible.builtin.import_tasks:
+    file: RHEL-09-61xxxx.yml
+
+- name: Run Cat 2 STIG 63xxxx tasks
+  ansible.builtin.import_tasks:
+    file: RHEL-09-63xxxx.yml
+
+- name: Run Cat 2 STIG 65xxxx tasks
+  ansible.builtin.import_tasks:
+    file: RHEL-09-65xxxx.yml
+
+- name: Run Cat 2 STIG 654xxx tasks
+  ansible.builtin.import_tasks:
+    file: RHEL-09-654xxx.yml
+  tags:
+    - test
+
+- name: Run Cat 2 STIG 67xxxx tasks
+  ansible.builtin.import_tasks:
+    file: RHEL-09-67xxxx.yml
+  tags:
+    - test

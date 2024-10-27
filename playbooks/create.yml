@@ -1,0 +1,147 @@
+---
+- name: Create (Re-Create) VM from template
+  hosts: all
+  gather_facts: no
+  tasks:
+  - name: Ensure inventory string is present on vCenter
+    community.vmware.vcenter_folder:
+      hostname: "{{ vchostname }}"
+      username: "{{ vcusername }}"
+      password: "{{ vcpassword }}"
+      validate_certs: False
+      datacenter_name: "{{ vcdatacenter}}"
+      folder_name: "{{ vcstring }}"
+      parent_folder: Infrastructure
+      folder_type: vm
+      state: present
+    delegate_to: localhost
+
+  - name: Delete the Virtual Machine
+    community.vmware.vmware_guest:
+      hostname: "{{ vchostname }}"
+      username: "{{ vcusername }}"
+      password: "{{ vcpassword }}"
+      validate_certs: False
+      name: "{{ vcstring }}-{{ inventory_hostname_short }}"
+      datacenter: "{{ vcdatacenter}}"
+      folder: "/{{ vcdatacenter }}/vm/Infrastructure/{{ vcstring }}"
+      state: absent
+      force: true
+      cluster: "{{ vccluster }}"
+    delegate_to: localhost
+
+  - name: Create the Virtual Machine
+    community.vmware.vmware_guest:
+      hostname: "{{ vchostname }}"
+      username: "{{ vcusername }}"
+      password: "{{ vcpassword }}"
+      validate_certs: False
+      name: "{{ vcstring }}-{{ inventory_hostname_short }}"
+      template: "{{ vctemplate }}"
+      datacenter: "{{ vcdatacenter }}"
+      folder: "/{{ vcdatacenter }}/vm/Infrastructure/{{ vcstring }}"
+      state: poweredon
+      cluster: "{{ vccluster }}"
+      hardware:
+        memory_mb: "{{ memory_mb }}"
+        num_cpus: "{{ num_cpus }}"
+      annotation: "TEMPLATE: {{ vctemplate }}\r\nBRANCH: {{ CI_COMMIT_REF_NAME }}\r\nDTG: {{ CI_PIPELINE_CREATED_AT }}\r\nPROJECT: {{ CI_PROJECT_TITLE }}\r\nPIPELINE IID: {{ CI_PIPELINE_IID }}\r\nINITIATED BY: {{ GITLAB_USER_NAME }}"
+    delegate_to: localhost
+    vars:
+       CI_COMMIT_REF_NAME: "{{ lookup('env', 'CI_COMMIT_REF_NAME') }}"
+       CI_PIPELINE_CREATED_AT: "{{ lookup('env', 'CI_PIPELINE_CREATED_AT') }}"
+       CI_PROJECT_TITLE: "{{ lookup('env', 'CI_PROJECT_TITLE') }}"
+       CI_PIPELINE_IID: "{{ lookup('env', 'CI_PIPELINE_IID') }}"
+       GITLAB_USER_NAME: "{{ lookup('env', 'GITLAB_USER_NAME') }}"
+
+  - name: Wait for VMware tools to become available
+    community.vmware.vmware_guest_tools_wait:
+      hostname: "{{ vchostname }}"
+      username: "{{ vcusername }}"
+      password: "{{ vcpassword }}"
+      validate_certs: False
+      name: "{{ vcstring }}-{{ inventory_hostname_short }}"
+      datacenter: "{{ vcdatacenter }}"
+      folder: "/{{ vcdatacenter }}/vm/Infrastructure/{{ vcstring }}"
+    delegate_to: localhost
+
+  - name: Setup Virtual Machine hostname
+    community.vmware.vmware_vm_shell:
+      hostname: "{{ vchostname }}"
+      username: "{{ vcusername }}"
+      password: "{{ vcpassword }}"
+      validate_certs: False
+      datacenter: "{{ vcdatacenter }}"
+      folder: "/{{ vcdatacenter }}/vm/Infrastructure/{{ vcstring }}"
+      vm_id: "{{ vcstring }}-{{ inventory_hostname_short }}"
+      vm_username: root
+      vm_password: "{{ root_password }}"
+      vm_shell: "/usr/bin/hostnamectl"
+      vm_shell_args: "set-hostname {{ inventory_hostname }}" 
+      wait_for_process: true
+    delegate_to: localhost
+
+  - name: Setup Virtual Machine network interface
+    community.vmware.vmware_vm_shell:
+      hostname: "{{ vchostname }}"
+      username: "{{ vcusername }}"
+      password: "{{ vcpassword }}"
+      validate_certs: False
+      datacenter: "{{ vcdatacenter }}"
+      folder: "/{{ vcdatacenter }}/vm/Infrastructure/{{ vcstring }}"
+      vm_id: "{{ vcstring }}-{{ inventory_hostname_short }}"
+      vm_username: root
+      vm_password: "{{ root_password }}"
+      vm_shell: /usr/bin/nmcli
+      vm_shell_args: "connection add type ethernet con-name ens192 ifname ens192 ipv4.addresses {{ ansible_host }}/{{ cidr }} ipv4.gateway {{ gateway }} ipv4.dns {{ dns1 }} ipv4.method manual ipv6.method ignore"
+      wait_for_process: true
+    delegate_to: localhost
+
+  - name: Delete Virtual Machine network interface
+    community.vmware.vmware_vm_shell:
+      hostname: "{{ vchostname }}"
+      username: "{{ vcusername }}"
+      password: "{{ vcpassword }}"
+      validate_certs: False
+      datacenter: "{{ vcdatacenter }}"
+      folder: "/{{ vcdatacenter }}/vm/Infrastructure/{{ vcstring }}"
+      vm_id: "{{ vcstring }}-{{ inventory_hostname_short }}"
+      vm_username: root
+      vm_password: "{{ root_password }}"
+      vm_shell: /usr/bin/nmcli
+      vm_shell_args: "connection delete 'Wired connection 1'"
+      wait_for_process: true
+    delegate_to: localhost
+    ignore_errors: true
+
+  - name: Activate Virtual Machine network interface
+    community.vmware.vmware_vm_shell:
+      hostname: "{{ vchostname }}"
+      username: "{{ vcusername }}"
+      password: "{{ vcpassword }}"
+      validate_certs: False
+      datacenter: "{{ vcdatacenter }}"
+      folder: "/{{ vcdatacenter }}/vm/Infrastructure/{{ vcstring }}"
+      vm_id: "{{ vcstring }}-{{ inventory_hostname_short }}"
+      vm_username: root
+      vm_password: "{{ root_password }}"
+      vm_shell: /usr/bin/nmcli
+      vm_shell_args: "connection reload"
+      wait_for_process: true
+    delegate_to: localhost
+
+  - name: Ansible-Agent sudoers file - no password required
+    community.vmware.vmware_vm_shell:
+      hostname: "{{ vchostname }}"
+      username: "{{ vcusername }}"
+      password: "{{ vcpassword }}"
+      validate_certs: False
+      datacenter: "{{ vcdatacenter }}"
+      folder: "/{{ vcdatacenter }}/vm/Infrastructure/{{ vcstring }}"
+      vm_id: "{{ vcstring }}-{{ inventory_hostname_short }}"
+      vm_username: root
+      vm_password: "{{ root_password }}"
+      vm_shell: /usr/bin/echo
+      vm_shell_args: "'ansible-agent ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/ansible-agent"
+      wait_for_process: true
+    delegate_to: localhost

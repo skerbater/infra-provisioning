@@ -1,0 +1,59 @@
+rkeservers:
+  hosts:
+    rke2-server.ericlasher.local:
+      ansible_host: 10.16.0.75
+      memory_mb: 1024
+      num_cpus: 1
+rkeagents:
+  hosts:
+    rke2-agent-01.ericlasher.local:
+      ansible_host: 10.16.0.76
+      memory_mb: 1024
+      num_cpus: 1
+    rke2-agent-02.ericlasher.local:
+      ansible_host: 10.16.0.77
+      memory_mb: 1024
+      num_cpus: 1
+databaseservers:
+  hosts:
+    oracledb.ericlasher.local:
+      ansible_host: 10.16.0.78
+      memory_mb: 1024
+      num_cpus: 1
+orchestrators:
+  hosts:
+    manager.ericlasher.local:
+      ansible_host: 10.16.0.79
+      memory_mb: 1024
+      num_cpus: 1
+analytics:
+  hosts:
+    logz.ericlasher.local:
+      ansible_host: 10.16.0.80
+      memory_mb: 1024
+      num_cpus: 1
+queue:
+  hosts:
+    messenger.ericlasher.local:
+      ansible_host: 10.16.0.82
+      memory_mb: 2048
+      num_cpus: 2
+appservers:
+  hosts:
+    appz.ericlasher.local:
+      ansible_host: 10.16.0.81
+      memory_mb: 2048
+      num_cpus: 1
+k8s:
+  children:
+    rkeservers:
+    rkeagents:
+dbs:
+  children:
+    databaseservers:
+mgs:
+  children:
+    orchestrators:
+apps:
+  children:
+    appservers:

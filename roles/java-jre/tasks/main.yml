@@ -1,0 +1,21 @@
+---
+- name: Download java jre 1.8.X
+  ansible.builtin.get_url:
+    url: https://javadl.oracle.com/webapps/download/AutoDL?BundleId=249839_43d62d619be4e416215729597d70b8ac
+    dest: /tmp/jre-8u411-linux-x64.rpm
+
+- name: Import java jre key from yum.oracle.com
+  ansible.builtin.rpm_key:
+    state: present
+    key: https://yum.oracle.com/RPM-GPG-KEY-oracle-ol8
+
+- name: Install java jre 1.8.X
+  ansible.builtin.dnf:
+    name: /tmp/jre-8u411-linux-x64.rpm
+    state: present
+    disable_gpg_check: false
+
+- name: Remove java jre 1.8.X rpm
+  ansible.builtin.file:
+    state: absent
+    path: /tmp/jre-8u411-linux-x64.rpm

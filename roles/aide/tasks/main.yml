@@ -1,0 +1,11 @@
+---
+# tasks file for aide
+- name: Aide package installation
+  ansible.builtin.dnf:
+    name: aide
+    state: present
+
+- name: Template Aide check weekly
+  ansible.builtin.template:
+    src: aide.j2
+    dest: /etc/cron.weekly/aide

@@ -1,0 +1,7 @@
+---
+collections:
+  - name: fedora.linux_system_roles
+  - name: ansible.utils
+  - name: freeipa.ansible_freeipa
+  - name: community.vmware
+  - name: containers.podman
