@@ -21,8 +21,8 @@ root_password: password
 #Ansible-Lockdown
 rhel9stig_bootloader_password_hash: grub.pbkdf2.sha512.10000.9AF2A67E4C7D13C4E13758EF0F2EE330C967918608B887482F2D3A89E743A3395DA9987D03487D6E5AD478BD47870390B4F8B2BA7456F96614F63D9DC7BFE9E7.EB92E4884E637886D8A981EB0992DADFD1B0DEA9389FA1D6BA0D8792AA5AFA5021B0832D0146CE9E4BD7CAFF0C44A532B30F4B29B0A6EFCF67222160CC9B6E6E
 rhel9stig_set_bootloader_password: true
-setup_audit: false
-run_audit: false
+setup_audit: true
+run_audit: true
 rhel9stig_complexity_high: true
 rhel9stig_disruption_high: true
 rhel9stig_av_pkg: clamav
@@ -31,4 +31,3 @@ rhel9stig_remotelog_server:
     server: 10.16.0.80
     port: 514
     protocol: '@@'
-rhel_09_611085: false
